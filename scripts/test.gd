@@ -7,15 +7,15 @@ var path = "res://resources/test_db.db"
 #test environment
 func _ready():
 	#try fetch_all_data() and/or fetch_specific_date(start_date, end_date)	
-	fetch_all_data()
-	print("****************************************************")
-	for result in results_array:
-		result.print_all()
-		
-	#fetch_specific_data("2023-05-23", "2023-06-06")
+	#fetch_all_data()
 	#print("****************************************************")
 	#for result in results_array:
 	#	result.print_all()
+		
+	fetch_specific_data("2023-01-23", "2023-07-06")
+	print("****************************************************")
+	for result in results_array:
+		result.print_all()
 
 	
 #helper function to parse JSON
@@ -33,11 +33,9 @@ func parse_json(json_string):
 func is_valid_timestamp(timestamp: String):
 	#convert timestamp to "yyyy-mm-dd" format
 	timestamp = timestamp.substr(0, 10)
-	#regular expression to match "yyyy-mm-dd" format
-	var regex = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
 	
-	#check if the timestamp matches the format
-	if timestamp.match(regex) == null:
+	#make sure timestamp is in the correct format
+	if timestamp[4] != "-" or timestamp[7] != "-":
 		return false
 	
 	#split the timestamp into components
@@ -86,17 +84,27 @@ func fetch_all_data():
 		
 		if typeof(parsed_payload) == TYPE_DICTIONARY:
 			#make sure payload has correct entries
-			if parsed_payload.has("question_node") and parsed_payload.has("reference_node") and parsed_payload.has("answer") and parsed_payload.has("timestamp"): 
+			if parsed_payload.has("question_node") and parsed_payload.has("reference_node") and parsed_payload.has("answer") and parsed_payload.has("is_correct") and parsed_payload.has("timestamp"): 
 				var question_node = int(parsed_payload["question_node"])
 				var reference_node = int(parsed_payload["reference_node"])
 				var answer = parsed_payload["answer"]
+				
+				var is_correct = parsed_payload["is_correct"]
+				if is_correct.to_lower() == "true":
+					is_correct = true
+				elif is_correct.to_lower() == "false":
+					is_correct = false
+				else:
+					print("is_correct in payload is invalid")
+					return
+				
 				var timestamp = parsed_payload["timestamp"]
 				
 				#make sure timestamp is in correct format
 				var time = Time.get_unix_time_from_datetime_string(parsed_payload["timestamp"])
 				if time != 0 and is_valid_timestamp(parsed_payload["timestamp"]) == true:
 					#make new instance of Results class and append to array
-					var result = Results.new(question_node, reference_node, answer, timestamp)
+					var result = Results.new(question_node, reference_node, answer, is_correct, timestamp)
 					results_array.append(result)
 		else:
 			print("Failed to parse JSON")
