@@ -7,15 +7,15 @@ var path = "res://resources/test_db.db"
 #test environment
 func _ready():
 	#try fetch_all_data() and/or fetch_specific_date(start_date, end_date)	
-	#fetch_all_data()
-	#print("****************************************************")
-	#for result in results_array:
-	#	result.print_all()
-		
-	fetch_specific_data("2023-01-23", "2023-07-06")
+	fetch_all_data()
 	print("****************************************************")
 	for result in results_array:
 		result.print_all()
+		
+	#fetch_specific_data("2023-01-23", "2023-07-06")
+	#print("****************************************************")
+	#for result in results_array:
+	#	result.print_all()
 
 	
 #helper function to parse JSON
@@ -87,8 +87,12 @@ func fetch_all_data():
 			if parsed_payload.has("question_node") and parsed_payload.has("reference_node") and parsed_payload.has("answer") and parsed_payload.has("is_correct") and parsed_payload.has("timestamp"): 
 				var question_node = int(parsed_payload["question_node"])
 				var reference_node = int(parsed_payload["reference_node"])
+	
 				var answer = parsed_payload["answer"]
-				
+				if answer.to_lower() != "before" and answer.to_lower() != "after":
+					print("answer in payload is invalid")
+					continue
+						
 				var is_correct = parsed_payload["is_correct"]
 				if is_correct.to_lower() == "true":
 					is_correct = true
@@ -96,7 +100,7 @@ func fetch_all_data():
 					is_correct = false
 				else:
 					print("is_correct in payload is invalid")
-					return
+					continue
 				
 				var timestamp = parsed_payload["timestamp"]
 				
