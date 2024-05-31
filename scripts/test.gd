@@ -3,19 +3,25 @@ extends Node
 var database : SQLite
 var results_array : Array
 var path = "res://resources/test_db.db"
+var database_table = "MQTT_LOG"
 
 #test environment
 func _ready():
-	#try fetch_all_data() and/or fetch_specific_date(start_date, end_date)	
-	fetch_all_data()
-	print("****************************************************")
-	for result in results_array:
-		result.print_all()
+	var looping = true
+	#gets data from database every 10 seconds
+	while looping:
+		#try fetch_all_data() and/or fetch_specific_date(start_date, end_date)	
+		fetch_all_data()
+		print("****************************************************")
+		for result in results_array:
+			result.print_all()
+			
+		#fetch_specific_data("2023-01-23", "2023-07-06")
+		#print("****************************************************")
+		#for result in results_array:
+		#	result.print_all()
 		
-	#fetch_specific_data("2023-01-23", "2023-07-06")
-	#print("****************************************************")
-	#for result in results_array:
-	#	result.print_all()
+		await get_tree().create_timer(10.0).timeout
 
 	
 #helper function to parse JSON
@@ -69,7 +75,7 @@ func fetch_all_data():
 	database.open_db()
 	
 	#check that column exsists in database
-	var success = database.query("SELECT PAYLOAD FROM MQTT_LOG")
+	var success = database.query("SELECT PAYLOAD FROM " + database_table)
 	if success == false:
 		print("Query failed")
 		return
